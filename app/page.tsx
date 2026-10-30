@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Lenis from "lenis";
 import {
+  AnimatePresence,
   MotionConfig,
   motion,
   useMotionTemplate,
@@ -24,16 +25,28 @@ import {
 } from "react";
 
 /* -------------------------------------------------------------------------- */
-/*  Contact details: replace each "#connect" with the real link before launch */
+/*  Contact details                                                           */
 /* -------------------------------------------------------------------------- */
 
 const CONTACT = {
-  email: "#connect", // "mailto:you@yourdomain.com"
-  viber: "#connect", // "viber://chat?number=%2B63XXXXXXXXXX"
+  email: "dailylxm@gmail.com",
   socials: [
-    { label: "Facebook", href: "#connect", icon: "facebook" },
-    { label: "Instagram", href: "#connect", icon: "instagram" },
-    { label: "LinkedIn", href: "#connect", icon: "linkedin" },
+    {
+      label: "Facebook",
+      href: "https://www.facebook.com/share/19qACx9Kih/",
+      icon: "facebook",
+    },
+    {
+      // Points at the Facebook link for now, until there is an Instagram profile URL
+      label: "Instagram",
+      href: "https://www.facebook.com/share/19qACx9Kih/",
+      icon: "instagram",
+    },
+    {
+      label: "TikTok / @life.freemula",
+      href: "https://www.tiktok.com/@life.freemula",
+      icon: "tiktok",
+    },
   ],
 } as const;
 
@@ -1595,6 +1608,22 @@ function Love() {
 /* -------------------------------------------------------------------------- */
 
 function Connect() {
+  const [copied, setCopied] = useState(false);
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
+
+  // The mailto still opens; the copy covers visitors with no mail app set up
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(CONTACT.email);
+    } catch {
+      return;
+    }
+    setCopied(true);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setCopied(false), 2400);
+  };
+
   return (
     <section
       id="connect"
@@ -1620,46 +1649,58 @@ function Connect() {
           viewport={inView}
           transition={{ duration: 1.1, ease: EASE }}
         >
-          <PillCTA href={CONTACT.email}>Let&rsquo;s Collaborate</PillCTA>
+          <PillCTA href={`mailto:${CONTACT.email}`}>Let&rsquo;s Collaborate</PillCTA>
         </motion.div>
 
-        <Stagger className="mt-14 grid gap-3 md:grid-cols-3 lg:mt-24">
-          <motion.a
-            variants={fadeUp}
-            href={CONTACT.email}
-            className="contact-card"
-          >
-            <span className="contact-icon">
-              <MailIcon />
-            </span>
-            <span>Email Address</span>
-          </motion.a>
-          <motion.a
-            variants={fadeUp}
-            href={CONTACT.viber}
-            className="contact-card"
-          >
-            <span className="contact-icon">
-              <ViberIcon />
-            </span>
-            <span>My Viber</span>
-          </motion.a>
-          <motion.div variants={fadeUp} className="contact-card">
-            <span>My Socials</span>
-            <span className="ml-auto flex gap-2">
-              {CONTACT.socials.map((s) => (
+        <Stagger className="mt-14 grid gap-3 sm:grid-cols-2 lg:mt-24 lg:flex lg:flex-wrap lg:justify-center">
+          <motion.div variants={fadeUp}>
+            <Magnetic strength={0.2} className="w-full">
+              <a
+                href={`mailto:${CONTACT.email}`}
+                onClick={copyEmail}
+                className="social-pill"
+              >
+                <MailIcon />
+                <span>Email</span>
+              </a>
+            </Magnetic>
+          </motion.div>
+          {CONTACT.socials.map((s) => (
+            <motion.div key={s.label} variants={fadeUp}>
+              <Magnetic strength={0.2} className="w-full">
                 <a
-                  key={s.label}
                   href={s.href}
-                  aria-label={s.label}
-                  className="contact-icon transition-colors hover:bg-white hover:text-ink"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-pill"
                 >
                   <SocialIcon name={s.icon} />
+                  <span>{s.label}</span>
                 </a>
-              ))}
-            </span>
-          </motion.div>
+              </Magnetic>
+            </motion.div>
+          ))}
         </Stagger>
+      </div>
+
+      <div
+        role="status"
+        aria-live="polite"
+        className="pointer-events-none fixed inset-x-0 bottom-8 z-40 flex justify-center px-6"
+      >
+        <AnimatePresence>
+          {copied && (
+            <motion.span
+              initial={{ opacity: 0, y: 16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.4, ease: EASE }}
+              className="rounded-full border border-white/10 bg-[#161a22]/85 px-6 py-3 text-[15px] font-medium text-white shadow-[0_18px_50px_-12px_rgba(0,0,0,.65)] backdrop-blur-[18px]"
+            >
+              Email copied!
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
 
       <footer className="text-ink/70 relative flex flex-wrap items-center justify-between gap-3 px-3 pt-6 pb-3 text-[13px] lg:px-6">
@@ -1730,32 +1771,24 @@ function MailIcon() {
     </svg>
   );
 }
-function ViberIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...stroke}>
-      <path d="M12 3c-5 0-8 2-8 7v2.5c0 3 1.4 4.8 4 5.6V21l3.2-2.6H12c5 0 8-2 8-6.9V10c0-5-3-7-8-7Z" />
-      <path d="M9 7.5c-.8.3-1.2 1-1 1.8.7 2.8 2.6 4.8 5.4 5.6.8.2 1.5-.2 1.8-1l-1.9-1.5-1 .6c-1-.5-1.7-1.3-2.1-2.3l.7-1L9 7.5ZM13 6.8c1.8.2 3 1.4 3.2 3.2M13 9c.7.1 1.1.5 1.2 1.2" />
-    </svg>
-  );
-}
-function SocialIcon({ name }: { name: "facebook" | "instagram" | "linkedin" }) {
+function SocialIcon({ name }: { name: "facebook" | "instagram" | "tiktok" }) {
   if (name === "facebook")
     return (
-      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden fill="currentColor">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden fill="currentColor">
         <path d="M13.5 22v-8.2h2.8l.4-3.2h-3.2V8.5c0-.9.3-1.6 1.6-1.6h1.7V4.1c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.3H7.3v3.2h2.8V22h3.4Z" />
       </svg>
     );
   if (name === "instagram")
     return (
-      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden {...stroke}>
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...stroke}>
         <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
         <circle cx="12" cy="12" r="4" />
         <circle cx="17" cy="7" r=".6" fill="currentColor" />
       </svg>
     );
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden fill="currentColor">
-      <path d="M6.9 21H3.4V9.5h3.5V21ZM5.1 7.9a2 2 0 1 1 0-4 2 2 0 0 1 0 4ZM21 21h-3.5v-5.6c0-1.3 0-3-1.9-3s-2.1 1.4-2.1 2.9V21H10V9.5h3.3V11h.1c.5-.9 1.6-1.9 3.3-1.9 3.5 0 4.3 2.3 4.3 5.3V21Z" />
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden fill="currentColor">
+      <path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48Z" />
     </svg>
   );
 }
