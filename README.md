@@ -2,6 +2,8 @@
 
 Premium landing page for Lemuel Abelgas: Entrepreneur, Trading, Community Builder.
 
+Live at [lemuel-abelgas-landing-page.vercel.app](https://lemuel-abelgas-landing-page.vercel.app)
+
 **Tech:** Next.js 16, Tailwind CSS, Framer Motion, Lenis Scroll
 
 **Design:** Colbo-inspired dark premium
